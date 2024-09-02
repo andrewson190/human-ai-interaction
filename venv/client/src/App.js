@@ -74,7 +74,7 @@ function App() {
             >
               {message.sender !== 'user' &&
                 <img 
-                  src={Human} 
+                  src={AI} 
                   className={'h-12 w-12 rounded-3xl mr-2'}
                 />
               }
@@ -90,7 +90,7 @@ function App() {
 
               {message.sender === 'user' &&
                 <img 
-                  src={AI} 
+                  src={Human} 
                   className={'h-12 w-12 rounded-3xl ml-4'}
                 />
               }
