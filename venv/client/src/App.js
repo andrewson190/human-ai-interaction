@@ -1,5 +1,8 @@
 
 import { useState, useRef, useEffect } from 'react';
+import AI from './assets/ai.jpg'
+import Human from './assets/human.avif'
+import './App.css';
 
 /*const url = process.env.NODE_ENV === 'production' ? 'https://course-tools-demo.onrender.com/' : 'http://127.0.0.1:8000/';*/
 
@@ -59,22 +62,38 @@ function App() {
   }, [chatHistory]);
 
   return (
-    <div className="container mx-auto pt-20 h-screen">
+    <div data-theme="light" className="container mx-auto pt-20 h-screen ">
       <h1 className="text-4xl ml-40">AI Assistant</h1>
       <div className="flex justify-center h-3/5">
         <div className="mt-5 border-2 border-gray-200 h-100% w-4/5 shadow overflow-y-scroll [&::-webkit-scrollbar]:hidden pt-2"  ref={chatContainerRef}>
           {chatHistory.map((message, index) => (
+            
             <div
               key={index}
-              className={`flex ${message.sender === 'user' ? 'justify-end mr-2' : 'justify-start ml-2'} mb-6`}
+              className={`flex ${message.sender === 'user' ? 'justify-end mr-2' : 'justify-start ml-2'} mb-6 items-end`}
             >
+              {message.sender !== 'user' &&
+                <img 
+                  src={Human} 
+                  className={'h-12 w-12 rounded-3xl mr-2'}
+                />
+              }
+            <div className={message.sender === 'user' ? "chat chat-end" : "chat chat-start"}>
               <div
-                className={`p-3 rounded-lg max-w-m text-white text-sm ${
+                className={` chat-bubble p-3 rounded-lg max-w-lg text-white text-sm	${
                   message.sender === 'user' ? 'bg-violet-950 text-right' : 'bg-violet-950 text-left'
                 }`}
               >
                 {message.text}
               </div>
+            </div>
+
+              {message.sender === 'user' &&
+                <img 
+                  src={AI} 
+                  className={'h-12 w-12 rounded-3xl ml-4'}
+                />
+              }
             </div>
           ))}
         </div>
