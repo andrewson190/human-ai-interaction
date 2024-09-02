@@ -105,6 +105,12 @@ function App() {
           value={message} 
           className="border-gray-200 border-2 input input-bordered w-4/5 ml-5 p-3 pl-4 rounded-3xl " 
           onInput={handleMessage} 
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault(); // Prevents the default action of the Enter key (e.g., submitting a form)
+              sendMessage(); // Calls the sendMessage function
+            }
+          }}
         />
         <button className="btn bg-gray-200 rounded-3xl px-6 text-sm text-violet-800" onClick={sendMessage}>Send</button>
       </div>
