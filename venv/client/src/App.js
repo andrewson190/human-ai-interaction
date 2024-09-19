@@ -57,7 +57,9 @@ function App() {
   return (
     <div data-theme="light" className="container mx-auto pt-20 pb-40 h-auto ">
       <h1 className="text-4xl ml-40">AI Assistant</h1>
-      <FileUpload />
+      <div className="flex flex-col items-center justify-center w-full h-full">
+        <FileUpload />
+      </div>
       <div className="flex justify-center">
         <div className="mt-5 border-2 border-gray-200 h-96 w-4/5 shadow overflow-y-scroll [&::-webkit-scrollbar]:hidden pt-2"  ref={chatContainerRef}>
           {chatHistory.map((message, index) => (

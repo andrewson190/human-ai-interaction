@@ -29,13 +29,14 @@ function FileUpload() {
       setFileError("Only CSV files are supported.");
       return;
     }
-
+  
     setFileError("");
     const reader = new FileReader();
     reader.onload = (event) => {
       const csvData = d3.csvParse(event.target.result, d3.autoType);
+      console.log(csvData);  // Debugging: Check if CSV data is parsed correctly
       setData(csvData.slice(0, 5)); // Show first 5 rows
-      setShowPreview(false); 
+      setShowPreview(false);
     };
     reader.readAsText(file);
   };
@@ -57,9 +58,10 @@ function FileUpload() {
   };
 
   return (
-    <div className="flex flex-col items-center w-full mt-5">
+    <div className="flex flex-col items-center justify-center w-full h-full mt-5 mb-5">
       <div
-        className={`flex items-center justify-center h-40 w-4/5 border-dashed border-2 ${isDragging ? 'border-gray-400 bg-gray-200' : 'border-gray-300'} p-4`}
+        className={`flex flex-col items-center justify-center w-4/5 border-dashed border-2 rounded-lg ${isDragging ? 'border-gray-400 bg-gray-200' : 'border-gray-300'} p-4`}
+        style={{ borderStyle: 'dashed', height: "100px" }}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -79,39 +81,42 @@ function FileUpload() {
       {fileError && <p className="text-red-500">{fileError}</p>}
 
       {data.length > 0 && (
-        <div className="flex flex-col items-center">
-          <button 
-            className=" mt-5 btn bg-gray-200 rounded-3xl px-6 text-sm text-violet-800"
+        <div className="flex flex-col items-center justify-center">
+            <button 
+            className="mt-5 btn bg-gray-200 rounded-3xl px-6 text-sm text-violet-800"
             onClick={togglePreview}
-          >
+            >
             {showPreview ? 'Hide Preview' : 'Show Preview'}
-          </button>
-          
-          {showPreview && (
-            <div className="data-preview">
-              <h3 className="text-lg font-semibold">Data Preview (First 5 Rows)</h3>
-              <table className="min-w-full border border-gray-200">
+            </button>
+            
+            {showPreview && (
+            <div >
+                <h3 className="text-lg font-semibold">Data Preview (First 5 Rows)</h3>
+                <table className="min-w-full border border-gray-200">
                 <thead>
-                  <tr>
-                    {Object.keys(data[0]).map((key) => (
-                      <th key={key} className="border border-gray-200 p-2">{key}</th>
+                    <tr>
+                    <th className="border border-gray-200 p-2">#</th> {/* Line numbers column */}
+                    {data.length > 0 && Object.keys(data[0]).map((key) => (
+                        <th key={key} className="border border-gray-200 p-2">{key}</th>
                     ))}
-                  </tr>
+                    </tr>
                 </thead>
                 <tbody>
-                  {data.map((row, index) => (
+                    {data.map((row, index) => (
                     <tr key={index}>
-                      {Object.values(row).map((value, idx) => (
+                        <td className="border border-gray-200 p-2">{index + 1}</td> {/* Line number */}
+                        {Object.values(row).map((value, idx) => (
                         <td key={idx} className="border border-gray-200 p-2">{value}</td>
-                      ))}
+                        ))}
                     </tr>
-                  ))}
+                    ))}
                 </tbody>
-              </table>
+                </table>
             </div>
-          )}
+            )}
         </div>
-      )}
+    )}
+
     </div>
   );
 }
