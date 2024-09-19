@@ -3,6 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import AI from './assets/ai.jpg'
 import Human from './assets/human.avif'
 import './App.css';
+import FileUpload from './components/FileUpload';
 
 const url = process.env.NODE_ENV === 'production' ? 'https://course-tools-demo.onrender.com/' : 'http://127.0.0.1:8000/';
 
@@ -10,23 +11,6 @@ function App() {
   const [message, setMessage] = useState("");
   const [response, setResponse] = useState("No response yet");
   const [chatHistory, setChatHistory] = useState([]);
-  /*function sendMessage() {
-    if (message === "") {
-      return;
-    } 
-    fetch(`${url}query`, {
-      method: 'POST',
-      body: JSON.stringify({ prompt: message }),
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    }).then(response => {
-      return response.json();
-    }).then(data => {
-      setResponse(data.response);
-    });
-    setMessage("");
-  }*/
   
   function sendMessage () {
 
@@ -43,8 +27,8 @@ function App() {
         setResponse(data.response);
         setChatHistory((prevHistory) => [
           ...prevHistory,
-          { text: message, sender: 'user' },  // User's message
-          { text: data.response, sender: 'bot' }  // Bot's response
+          { text: message, sender: 'user' }, 
+          { text: data.response, sender: 'bot' }  
         ]);
       })
       
@@ -71,10 +55,11 @@ function App() {
   }, [chatHistory]);
 
   return (
-    <div data-theme="light" className="container mx-auto pt-20 h-screen ">
+    <div data-theme="light" className="container mx-auto pt-20 pb-40 h-auto ">
       <h1 className="text-4xl ml-40">AI Assistant</h1>
-      <div className="flex justify-center h-3/5">
-        <div className="mt-5 border-2 border-gray-200 h-100% w-4/5 shadow overflow-y-scroll [&::-webkit-scrollbar]:hidden pt-2"  ref={chatContainerRef}>
+      <FileUpload />
+      <div className="flex justify-center">
+        <div className="mt-5 border-2 border-gray-200 h-96 w-4/5 shadow overflow-y-scroll [&::-webkit-scrollbar]:hidden pt-2"  ref={chatContainerRef}>
           {chatHistory.map((message, index) => (
             
             <div
@@ -116,8 +101,8 @@ function App() {
           onInput={handleMessage} 
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
-              e.preventDefault(); // Prevents the default action of the Enter key (e.g., submitting a form)
-              sendMessage(); // Calls the sendMessage function
+              e.preventDefault();
+              sendMessage(); 
             }
           }}
         />
