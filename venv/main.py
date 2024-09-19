@@ -4,6 +4,7 @@ from starlette.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from openai import OpenAI
+import openai
 import os
 from dotenv import load_dotenv
 
@@ -11,6 +12,8 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = FastAPI()
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Mount the static directory
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -25,10 +28,8 @@ app.add_middleware(
 )
 
 # Load OpenAI API key from environment variable
-client = OpenAI(
-    # This is the default and can be omitted
-    api_key=os.environ.get("OPENAI_API_KEY"),
-)
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
 
 # Define request and response models
 class QueryRequest(BaseModel):
@@ -42,8 +43,9 @@ class QueryResponse(BaseModel):
 async def query_openai(request: QueryRequest):
     try:
         # Set your OpenAI API key
-        
 
+        client = OpenAI(api_key=openai.api_key)
+        print(openai.api_key)
         # Call the OpenAI API via LangChain
         chat_completion = client.chat.completions.create(
             messages=[
@@ -54,7 +56,6 @@ async def query_openai(request: QueryRequest):
             ],
             model="gpt-3.5-turbo",
         )
-
         return QueryResponse(response=chat_completion.choices[0].message.content)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -62,4 +63,4 @@ async def query_openai(request: QueryRequest):
 # Root endpoint
 @app.get("/")
 async def read_root():
-    return FileResponse('static/index.html')
+    return FileResponse('client/src/App.js')

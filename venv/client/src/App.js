@@ -4,7 +4,7 @@ import AI from './assets/ai.jpg'
 import Human from './assets/human.avif'
 import './App.css';
 
-/*const url = process.env.NODE_ENV === 'production' ? 'https://course-tools-demo.onrender.com/' : 'http://127.0.0.1:8000/';*/
+const url = process.env.NODE_ENV === 'production' ? 'https://course-tools-demo.onrender.com/' : 'http://127.0.0.1:8000/';
 
 function App() {
   const [message, setMessage] = useState("");
@@ -26,21 +26,30 @@ function App() {
       setResponse(data.response);
     });
     setMessage("");
-  }
-  */
+  }*/
+  
   function sendMessage () {
+
     if (message.trim()) {
-      setChatHistory([...chatHistory, { text: message, sender: 'user' }]);
-      setTimeout(() => {
-        const botReply = 'I am a simple bot. I do not have real responses yet!';
-        console.log(response)
+      fetch(`${url}query`, {
+        method: 'POST',
+        body: JSON.stringify({ prompt: message }),
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      }).then(response => {
+        return response.json();
+      }).then(data => {
+        setResponse(data.response);
         setChatHistory((prevHistory) => [
           ...prevHistory,
-          { text: botReply, sender: 'bot' },
+          { text: message, sender: 'user' },  // User's message
+          { text: data.response, sender: 'bot' }  // Bot's response
         ]);
-        setResponse(botReply);
-      }, 250);
+      })
+      
       setMessage('');
+
     }
   };
 
