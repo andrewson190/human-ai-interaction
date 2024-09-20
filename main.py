@@ -112,4 +112,4 @@ async def query_openai(request: QueryRequest):
 
 @app.get("/")
 async def read_root():
-    return FileResponse('client/src/App.js')
+    return FileResponse('venv/client/src/App.js')
