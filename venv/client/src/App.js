@@ -18,15 +18,21 @@ function App() {
   const handleData = (x) => {
     setData(x)
   }
-  useEffect(() => {
-    console.log(fulldata); // This will log whenever `data` changes
-  }, [fulldata]);
+
   const handleMetadataChange = (columns) => {
     setMetadata(columns);
   };
   
   function sendMessage () {
-    console.log(metadata)
+    if (!fulldata || fulldata.length === 0) {
+      setChatHistory((prevHistory) => [
+        ...prevHistory,
+        { text: message, sender: 'user' },
+        { text: "Please upload a dataset before sending a message", sender: 'bot' }
+      ]);
+      return;
+    }
+
     if (message.trim()) {
       const requestBody = {
         prompt: message,
@@ -42,19 +48,29 @@ function App() {
         return response.json();
       }).then(data => {
         setResponse(data.description);
-        console.log(response)
-        const updatedVegaSpec = {
-          ...data.vega_lite_spec,
-          data: {
-            values: fulldata,  // Assuming you want to keep 'values'
-          },
-        };
-        setVegaSpec(updatedVegaSpec);
-        setChatHistory((prevHistory) => [
-          ...prevHistory,
-          { text: message, sender: 'user' }, 
-          { text: data.description, sender: 'bot', vegaSpec: updatedVegaSpec }, // Store vegaSpec in the bot message
-        ]);
+        console.log(data.vega_lite_spec)
+        if (Object.keys(data.vega_lite_spec).length === 0) {
+          setChatHistory((prevHistory) => [
+            ...prevHistory,
+            { text: message, sender: 'user' }, 
+            { text: data.description, sender: 'bot'}, // Store vegaSpec in the bot message
+          ]);
+        }
+        else {
+          const updatedVegaSpec = {
+            ...data.vega_lite_spec,
+            data: {
+              values: fulldata,  // Assuming you want to keep 'values'
+            },
+          };
+          setVegaSpec(updatedVegaSpec);
+          setChatHistory((prevHistory) => [
+            ...prevHistory,
+            { text: message, sender: 'user' }, 
+            { text: data.description, sender: 'bot', vegaSpec: updatedVegaSpec }, // Store vegaSpec in the bot message
+          ]);
+        }
+        
       })
       setMessage('');
     }
@@ -101,7 +117,7 @@ function App() {
                     message.sender === 'user' ? 'bg-violet-950 text-right' : 'bg-violet-950 text-left'
                   }`}
                 >
-                  {message.sender!='user' && vegaSpec && (
+                  {message.sender !== 'user' && vegaSpec && Object.keys(message.vegaSpec || {}).length > 0 && (
                     <div className="flex justify-center mt-4 mb-4">
                       <Vega spec={message.vegaSpec} />
                     </div>
