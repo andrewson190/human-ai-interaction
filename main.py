@@ -17,9 +17,6 @@ app = FastAPI()
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# Mount the static directory
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
