@@ -7,6 +7,8 @@ from openai import OpenAI
 import openai
 import os
 from dotenv import load_dotenv
+from typing import Union
+import json
 
 # Load environment variables from .env file
 load_dotenv()
@@ -30,33 +32,55 @@ app.add_middleware(
 # Load OpenAI API key from environment variable
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+class MetadataItem(BaseModel):
+    name: str
+    type: str
+    sample: Union[str, int, float]
 
-# Define request and response models
 class QueryRequest(BaseModel):
     prompt: str
+    metadata: list[MetadataItem]  # This should be a list of metadata objects
 
 class QueryResponse(BaseModel):
-    response: str
+    description: str
+    vega_lite_spec: dict
 
 # Endpoint to interact with OpenAI API via LangChain
 @app.post("/query", response_model=QueryResponse)
 async def query_openai(request: QueryRequest):
     try:
-        # Set your OpenAI API key
-
         client = OpenAI(api_key=openai.api_key)
-        print(openai.api_key)
-        # Call the OpenAI API via LangChain
+        metadata_str = "\n".join([f"{col.name} ({col.type}): {col.sample}" for col in request.metadata])    
+        print(metadata_str)    
+        full_prompt = (
+            f"Given the following columns:\n{metadata_str}\n\n"
+            f"Please generate a small Vega-Lite specification for the following visualization: {request.prompt}"
+        )
+        
         chat_completion = client.chat.completions.create(
-            messages=[
-                {
-                    "role": "user",
-                    "content": "Say this is a test",
-                }
-            ],
+            messages=[{"role": "user", "content": full_prompt}],
             model="gpt-3.5-turbo",
         )
-        return QueryResponse(response=chat_completion.choices[0].message.content)
+        
+        vega_lite_spec = json.loads(chat_completion.choices[0].message.content)
+        print(vega_lite_spec)
+
+        description_prompt = (
+            f"Based on the following Vega-Lite specification:\n{json.dumps(vega_lite_spec)}\n\n"
+            f"Please provide a one sentence description of the chart. "
+        )
+        
+        description_completion = client.chat.completions.create(
+            messages=[{"role": "user", "content": description_prompt}],
+            model="gpt-3.5-turbo",
+        )
+        
+        description = description_completion.choices[0].message.content.strip()
+        print(description)
+        return QueryResponse(description=description, vega_lite_spec=vega_lite_spec)
+        
+        response="hi"
+        return QueryResponse(response=response, vega_lite_spec=vega_lite_spec)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

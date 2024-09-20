@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import * as d3 from 'd3-dsv';
 
-function FileUpload() {
+function FileUpload(props) {
   const [fileError, setFileError] = useState("");
   const [data, setData] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
@@ -29,14 +29,21 @@ function FileUpload() {
       setFileError("Only CSV files are supported.");
       return;
     }
-  
+
     setFileError("");
     const reader = new FileReader();
     reader.onload = (event) => {
       const csvData = d3.csvParse(event.target.result, d3.autoType);
-      console.log(csvData);  // Debugging: Check if CSV data is parsed correctly
+      props.handleData(csvData)
       setData(csvData.slice(0, 5)); // Show first 5 rows
-      setShowPreview(false);
+
+      const columns = Object.keys(csvData[0]).map((key) => ({
+        name: key,
+        type: typeof csvData[0][key], 
+        sample: csvData[0][key],
+      }));
+
+      props.onMetadataChange(columns);
     };
     reader.readAsText(file);
   };
