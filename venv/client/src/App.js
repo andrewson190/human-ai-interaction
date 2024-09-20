@@ -5,7 +5,7 @@ import './App.css';
 import FileUpload from './components/FileUpload';
 import { Vega } from 'react-vega';
 
-const url = process.env.NODE_ENV === 'production' ? 'https://human-ai-interaction.onrender.com' : 'http://127.0.0.1:8000/';
+const url = process.env.NODE_ENV === 'production' ? 'https://human-ai-interaction.onrender.com/' : 'http://127.0.0.1:8000/';
 
 function App() {
   const [message, setMessage] = useState("");
