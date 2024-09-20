@@ -35,7 +35,7 @@ function FileUpload(props) {
     reader.onload = (event) => {
       const csvData = d3.csvParse(event.target.result, d3.autoType);
       props.handleData(csvData)
-      setData(csvData.slice(0, 5)); // Show first 5 rows
+      setData(csvData.slice(0, 5)); 
 
       const columns = Object.keys(csvData[0]).map((key) => ({
         name: key,
@@ -66,9 +66,12 @@ function FileUpload(props) {
 
   return (
     <div className="flex flex-col items-center justify-center w-full h-full mt-5 mb-5">
-      <div
-        className={`flex flex-col items-center justify-center w-4/5 border-dashed border-2 rounded-lg ${isDragging ? 'border-gray-400 bg-gray-200' : 'border-gray-300'} p-4`}
-        style={{ borderStyle: 'dashed', height: "100px" }}
+      <label
+        htmlFor="file-input"
+        className={`flex flex-col items-center justify-center w-4/5 border-dashed border-2 rounded-lg ${
+          isDragging ? 'border-gray-400 bg-gray-200' : 'border-gray-300'
+        } p-4`}
+        style={{ borderStyle: 'dashed', height: "100px", cursor: "pointer" }}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -80,10 +83,10 @@ function FileUpload(props) {
           style={{ display: 'none' }}
           id="file-input"
         />
-        <label htmlFor="file-input" className="text-center text-gray-600 cursor-pointer">
+        <span className="text-center text-gray-600">
           Drag and drop a CSV file here, or click to upload
-        </label>
-      </div>
+        </span>
+      </label>
 
       {fileError && <p className="text-red-500">{fileError}</p>}
 
@@ -102,7 +105,7 @@ function FileUpload(props) {
                 <table className="min-w-full border border-gray-200">
                 <thead>
                     <tr>
-                    <th className="border border-gray-200 p-2">#</th> {/* Line numbers column */}
+                    <th className="border border-gray-200 p-2">#</th> 
                     {data.length > 0 && Object.keys(data[0]).map((key) => (
                         <th key={key} className="border border-gray-200 p-2">{key}</th>
                     ))}
@@ -111,7 +114,7 @@ function FileUpload(props) {
                 <tbody>
                     {data.map((row, index) => (
                     <tr key={index}>
-                        <td className="border border-gray-200 p-2">{index + 1}</td> {/* Line number */}
+                        <td className="border border-gray-200 p-2">{index + 1}</td> 
                         {Object.values(row).map((value, idx) => (
                         <td key={idx} className="border border-gray-200 p-2">{value}</td>
                         ))}

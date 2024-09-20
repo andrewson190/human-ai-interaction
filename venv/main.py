@@ -39,7 +39,7 @@ class MetadataItem(BaseModel):
 
 class QueryRequest(BaseModel):
     prompt: str
-    metadata: list[MetadataItem]  # This should be a list of metadata objects
+    metadata: list[MetadataItem]
 
 class QueryResponse(BaseModel):
     description: str
@@ -112,7 +112,7 @@ async def query_openai(request: QueryRequest):
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-# Root endpoint
+
 @app.get("/")
 async def read_root():
     return FileResponse('client/src/App.js')

@@ -12,8 +12,8 @@ function App() {
   const [response, setResponse] = useState("No response yet");
   const [chatHistory, setChatHistory] = useState([]);
   const [fulldata, setData] = useState([])
-  const [metadata, setMetadata] = useState([]); // State for column metadata
-  const [vegaSpec, setVegaSpec] = useState(null); // State for Vega-Lite spec
+  const [metadata, setMetadata] = useState([]); 
+  const [vegaSpec, setVegaSpec] = useState(null); 
 
   const handleData = (x) => {
     setData(x)
@@ -34,40 +34,47 @@ function App() {
     }
 
     if (message.trim()) {
+
       const requestBody = {
         prompt: message,
-        metadata: metadata, // Include metadata in the request
+        metadata: metadata, 
       };
+
       fetch(`${url}query`, {
         method: 'POST',
         body: JSON.stringify(requestBody),
         headers: {
           'Content-Type': 'application/json'
         }
+
       }).then(response => {
         return response.json();
+
       }).then(data => {
         setResponse(data.description);
-        console.log(data.vega_lite_spec)
+
         if (Object.keys(data.vega_lite_spec).length === 0) {
           setChatHistory((prevHistory) => [
             ...prevHistory,
             { text: message, sender: 'user' }, 
-            { text: data.description, sender: 'bot'}, // Store vegaSpec in the bot message
+            { text: data.description, sender: 'bot'}, 
           ]);
         }
+
         else {
           const updatedVegaSpec = {
             ...data.vega_lite_spec,
             data: {
-              values: fulldata,  // Assuming you want to keep 'values'
+              values: fulldata,
             },
           };
+
           setVegaSpec(updatedVegaSpec);
+
           setChatHistory((prevHistory) => [
             ...prevHistory,
             { text: message, sender: 'user' }, 
-            { text: data.description, sender: 'bot', vegaSpec: updatedVegaSpec }, // Store vegaSpec in the bot message
+            { text: data.description, sender: 'bot', vegaSpec: updatedVegaSpec },
           ]);
         }
         
@@ -93,7 +100,7 @@ function App() {
   }, [chatHistory]);
 
   return (
-    <div data-theme="light" className="container mx-auto pt-20 pb-40 h-auto ">
+    <div data-theme="light" className="container mx-auto pt-10 pb-20 h-auto ">
       <h1 className="text-4xl ml-40">AI Assistant</h1>
       <div className="flex flex-col items-center justify-center w-full h-full">
         <FileUpload onMetadataChange={handleMetadataChange} handleData={handleData}/>
