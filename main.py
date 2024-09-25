@@ -43,6 +43,10 @@ class QueryResponse(BaseModel):
     description: str
     vega_lite_spec: dict
 
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
 # Endpoint to interact with OpenAI API via LangChain
 @app.post("/query", response_model=QueryResponse)
 async def query_openai(request: QueryRequest):
@@ -53,8 +57,9 @@ async def query_openai(request: QueryRequest):
         
         relevance_prompt = (
             f"Given the following columns:\n{metadata_str}\n\n"
-            f"Is the following request related to this dataset: {request.prompt}? "
-            f"Please respond with a yes or no."
+            f"Please evaluate whether the following request relates to these columns:\n"
+            f"\"{request.prompt}\"\n"
+            f"If the request is relevant, respond with 'yes'. If it is not relevant, respond with 'no'."
         )
 
         relevance_completion = client.chat.completions.create(
@@ -92,7 +97,13 @@ async def query_openai(request: QueryRequest):
             model="gpt-3.5-turbo",
         )
 
-        vega_lite_spec = json.loads(chat_completion.choices[0].message.content)
+        try:
+            vega_lite_spec = json.loads(chat_completion.choices[0].message.content)
+        except json.JSONDecodeError as e:
+            return QueryResponse(
+                description="Vega-Lite specification is ill-formed and cannot be fixed. Please try again.",
+                vega_lite_spec={}
+            )
 
         description_prompt = (
             f"Based on the following Vega-Lite specification:\n{json.dumps(vega_lite_spec)}\n\n"
