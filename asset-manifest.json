@@ -1,17 +1,17 @@
 {
   "files": {
     "main.css": "/human-ai-interaction/static/css/main.1814e5e6.css",
-    "main.js": "/human-ai-interaction/static/js/main.ec1770f1.js",
+    "main.js": "/human-ai-interaction/static/js/main.16274f1c.js",
     "static/js/453.419a5d54.chunk.js": "/human-ai-interaction/static/js/453.419a5d54.chunk.js",
     "static/media/ai.jpg": "/human-ai-interaction/static/media/ai.3328d5c153993c6e0533.jpg",
     "static/media/human.avif": "/human-ai-interaction/static/media/human.909714b5e7fcf6d304d5.avif",
     "index.html": "/human-ai-interaction/index.html",
     "main.1814e5e6.css.map": "/human-ai-interaction/static/css/main.1814e5e6.css.map",
-    "main.ec1770f1.js.map": "/human-ai-interaction/static/js/main.ec1770f1.js.map",
+    "main.16274f1c.js.map": "/human-ai-interaction/static/js/main.16274f1c.js.map",
     "453.419a5d54.chunk.js.map": "/human-ai-interaction/static/js/453.419a5d54.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.1814e5e6.css",
-    "static/js/main.ec1770f1.js"
+    "static/js/main.16274f1c.js"
   ]
 }
