@@ -29,20 +29,24 @@ function FileUpload(props) {
       setFileError("Only CSV files are supported.");
       return;
     }
-
+  
     setFileError("");
     const reader = new FileReader();
     reader.onload = (event) => {
       const csvData = d3.csvParse(event.target.result, d3.autoType);
-      props.handleData(csvData)
-      setData(csvData.slice(0, 5)); 
-
-      const columns = Object.keys(csvData[0]).map((key) => ({
-        name: key,
-        type: typeof csvData[0][key], 
-        sample: csvData[0][key],
-      }));
-
+      props.handleData(csvData);
+      setData(csvData.slice(0, 5));  // Display first 5 rows in preview
+  
+      // Collect 50 samples for each column
+      const columns = Object.keys(csvData[0]).map((key) => {
+        const samples = csvData.slice(0, 304).map(row => row[key]);  // Get up to 50 samples for each column
+        return {
+          name: key,
+          type: typeof csvData[0][key],
+          sample: samples,
+        };
+      });
+  
       props.onMetadataChange(columns);
     };
     reader.readAsText(file);

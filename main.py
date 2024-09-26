@@ -33,7 +33,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 class MetadataItem(BaseModel):
     name: str
     type: str
-    sample: Union[str, int, float]
+    sample: list[Union[str, int, float]]
 
 class QueryRequest(BaseModel):
     prompt: str
@@ -53,7 +53,10 @@ async def query_openai(request: QueryRequest):
     try:
         client = OpenAI(api_key=openai.api_key)
 
-        metadata_str = "\n".join([f"{col.name} ({col.type}): {col.sample}" for col in request.metadata])
+        metadata_str = "\n".join([
+            f"{col.name} ({col.type}): {', '.join(map(str, col.sample))}"  # Include all samples
+            for col in request.metadata
+        ])
         
         relevance_prompt = (
             f"Given the following columns:\n{metadata_str}\n\n"
@@ -89,7 +92,7 @@ async def query_openai(request: QueryRequest):
         
         full_prompt = (
             f"Given the following columns:\n{metadata_str}\n\n"
-            f"Please generate a small Vega-Lite specification for the following visualization: {request.prompt}"
+            f"Please generate a single Vega-Lite specification for the following visualization: {request.prompt}."
         )
 
         chat_completion = client.chat.completions.create(
