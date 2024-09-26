@@ -37,7 +37,7 @@ class MetadataItem(BaseModel):
 
 class QueryRequest(BaseModel):
     prompt: str
-    metadata: list[MetadataItem]
+    metadata: list[dict] 
 
 class QueryResponse(BaseModel):
     description: str
@@ -54,22 +54,21 @@ async def query_openai(request: QueryRequest):
         client = OpenAI(api_key=openai.api_key)
 
         metadata_str = "\n".join([
-            f"{col.name} ({col.type}): {', '.join(map(str, col.sample))}"  # Include all samples
-            for col in request.metadata
+            f"Example {i+1}: " + ", ".join([f"{key}: {value}" for key, value in col.items()])
+            for i, col in enumerate(request.metadata)
         ])
-        
         relevance_prompt = (
             f"Given the following dataset:\n{metadata_str}\n\n"
             f"Please evaluate whether the following request contains content that is also in this dataset or is relevant to this dataset:\n"
             f"\"{request.prompt}\"\n"
             f"If the request is relevant to the dataset, respond with 'yes'. If it is not relevant to the dataset, respond with 'no'."
         )
-
+        print(relevance_prompt)
         relevance_completion = client.chat.completions.create(
             messages=[{"role": "user", "content": relevance_prompt}],
             model="gpt-3.5-turbo",
         )
-
+        print(relevance_completion)
         relevance_response = relevance_completion.choices[0].message.content.strip().lower()
         
         print(relevance_response)

@@ -26,36 +26,39 @@ function FileUpload(props) {
 
   const processFile = (file) => {
     if (!file.name.endsWith('.csv')) {
-      setFileError("Only CSV files are supported.");
-      return;
+        setFileError("Only CSV files are supported.");
+        return;
     }
-  
+
     setFileError("");
     const reader = new FileReader();
     reader.onload = (event) => {
-      const csvData = d3.csvParse(event.target.result, d3.autoType);
-      props.handleData(csvData);
-      setData(csvData.slice(-5));  // Display the last 5 rows in the preview
-  
-      // Extract 304 samples from the bottom of the dataset
-      const sampleSize = 304;
-      const startIndex = csvData.length >= sampleSize ? csvData.length - sampleSize : 0;
-      const sampledData = csvData.slice(startIndex);  // Get the last 304 rows
-  
-      // Collect samples for each column, allowing up to 304 samples per column
-      const columns = Object.keys(csvData[0]).map((key) => {
-        const samples = sampledData.map(row => row[key]).slice(0, sampleSize);  // Collect up to 304 samples
-        return {
-          name: key,
-          type: typeof csvData[0][key],
-          sample: samples,
-        };
-      });
-  
-      props.onMetadataChange(columns);
+        const csvData = d3.csvParse(event.target.result, d3.autoType);
+        props.handleData(csvData);
+        
+        // Preview top 100 and bottom 100 rows
+        const topRows = csvData.slice(0, 10);
+        const bottomRows = csvData.slice(-200);
+        const previewData = topRows.concat(bottomRows); // Combine both arrays
+        const preview = csvData.slice(0,5)
+        // Set the preview data
+        setData(preview);
+        // Create metadata as a list of dictionaries for the entire dataset
+        const metadata = previewData.map(row => {
+            return Object.keys(row).reduce((acc, key) => {
+                acc[key] = row[key];
+                return acc;
+            }, {});
+        });
+
+        // Pass the new metadata structure to the parent component
+        props.onMetadataChange(metadata);
     };
     reader.readAsText(file);
-  };
+};
+
+
+
   
   
   
