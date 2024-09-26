@@ -39,6 +39,7 @@ function App() {
         prompt: message,
         metadata: metadata, 
       };
+      console.log(metadata)
 
       fetch(`${url}query`, {
         method: 'POST',

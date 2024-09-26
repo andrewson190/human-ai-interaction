@@ -59,10 +59,10 @@ async def query_openai(request: QueryRequest):
         ])
         
         relevance_prompt = (
-            f"Given the following columns:\n{metadata_str}\n\n"
-            f"Please evaluate whether the following request relates to these columns:\n"
+            f"Given the following dataset:\n{metadata_str}\n\n"
+            f"Please evaluate whether the following request contains content that is also in this dataset:\n"
             f"\"{request.prompt}\"\n"
-            f"If the request is relevant, respond with 'yes'. If it is not relevant, respond with 'no'."
+            f"If the request is relevant to the dataset, respond with 'yes'. If it is not relevant to the dataset, respond with 'no'."
         )
 
         relevance_completion = client.chat.completions.create(
@@ -91,8 +91,8 @@ async def query_openai(request: QueryRequest):
             )
         
         full_prompt = (
-            f"Given the following columns:\n{metadata_str}\n\n"
-            f"Please generate a single Vega-Lite specification for the following visualization: {request.prompt}."
+            f"Given the following dataset:\n{metadata_str}\n\n"
+            f"Use this dataset to generate a Vega-Lite specification for the following visualization: {request.prompt}."
         )
 
         chat_completion = client.chat.completions.create(

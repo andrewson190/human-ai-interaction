@@ -35,11 +35,16 @@ function FileUpload(props) {
     reader.onload = (event) => {
       const csvData = d3.csvParse(event.target.result, d3.autoType);
       props.handleData(csvData);
-      setData(csvData.slice(0, 5));  // Display first 5 rows in preview
+      setData(csvData.slice(-5));  // Display the last 5 rows in the preview
   
-      // Collect 50 samples for each column
+      // Extract 304 samples from the bottom of the dataset
+      const sampleSize = 304;
+      const startIndex = csvData.length >= sampleSize ? csvData.length - sampleSize : 0;
+      const sampledData = csvData.slice(startIndex);  // Get the last 304 rows
+  
+      // Collect samples for each column, allowing up to 304 samples per column
       const columns = Object.keys(csvData[0]).map((key) => {
-        const samples = csvData.slice(0, 304).map(row => row[key]);  // Get up to 50 samples for each column
+        const samples = sampledData.map(row => row[key]).slice(0, sampleSize);  // Collect up to 304 samples
         return {
           name: key,
           type: typeof csvData[0][key],
@@ -51,7 +56,9 @@ function FileUpload(props) {
     };
     reader.readAsText(file);
   };
-
+  
+  
+  
   const handleDragOver = (event) => {
     event.preventDefault();
     event.stopPropagation();
