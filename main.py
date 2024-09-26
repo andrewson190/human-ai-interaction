@@ -60,7 +60,7 @@ async def query_openai(request: QueryRequest):
         
         relevance_prompt = (
             f"Given the following dataset:\n{metadata_str}\n\n"
-            f"Please evaluate whether the following request contains content that is also in this dataset:\n"
+            f"Please evaluate whether the following request contains content that is also in this dataset or is relevant to this dataset:\n"
             f"\"{request.prompt}\"\n"
             f"If the request is relevant to the dataset, respond with 'yes'. If it is not relevant to the dataset, respond with 'no'."
         )
