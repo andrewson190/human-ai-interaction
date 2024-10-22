@@ -37,9 +37,12 @@ function FileUpload(props) {
         props.handleData(csvData);
         
         // Preview top 100 and bottom 100 rows
-        const topRows = csvData.slice(0, 10);
-        const bottomRows = csvData.slice(-200);
-        const previewData = topRows.concat(bottomRows); // Combine both arrays
+        const topRows = csvData.slice(0,10)
+
+        // const bottomRows = csvData.slice(-10);
+        //const previewData = topRows.concat(bottomRows); // Combine both arrays
+
+        const previewData = topRows;
         const preview = csvData.slice(0,5)
         // Set the preview data
         setData(preview);
@@ -52,6 +55,7 @@ function FileUpload(props) {
         });
 
         // Pass the new metadata structure to the parent component
+        console.log(metadata)
         props.onMetadataChange(metadata);
     };
     reader.readAsText(file);

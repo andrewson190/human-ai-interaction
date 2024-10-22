@@ -4,7 +4,7 @@ import Human from './assets/human.avif'
 import './App.css';
 import FileUpload from './components/FileUpload';
 import { Vega } from 'react-vega';
-
+import SpinnerIcon from './assets/spinner.svg'
 const url = process.env.NODE_ENV === 'production' ? 'https://human-ai-interaction.onrender.com/' : 'http://127.0.0.1:8000/';
 
 function App() {
@@ -29,7 +29,8 @@ function App() {
         ...prevHistory,
         { text: message, sender: 'user' },
         { text: "Please upload a dataset before sending a message", sender: 'bot' }
-      ]);
+        ]);
+      setMessage('')
       return;
     }
 
@@ -39,7 +40,12 @@ function App() {
         prompt: message,
         metadata: metadata, 
       };
-      console.log(metadata)
+      // Show user's message and "Working on it..." message with spinner immediately
+      setChatHistory((prevHistory) => [
+        ...prevHistory,
+        { text: message, sender: 'user' }, 
+        { text: "Working on it... This may take a few seconds.", sender: 'bot', loading: true }
+      ]);
 
       fetch(`${url}query`, {
         method: 'POST',
@@ -52,36 +58,60 @@ function App() {
         return response.json();
 
       }).then(data => {
-        setResponse(data.description);
-
         if (Object.keys(data.vega_lite_spec).length === 0) {
-          setChatHistory((prevHistory) => [
-            ...prevHistory,
-            { text: message, sender: 'user' }, 
-            { text: data.description, sender: 'bot'}, 
-          ]);
+          setChatHistory((prevHistory) => {
+            const updatedHistory = prevHistory.slice(0, -1);  // Remove the last "Working on it..." message
+            return [
+              ...updatedHistory,
+              { text: data.descriptions, sender: 'bot' },
+            ];
+          });
         }
 
         else {
-          const updatedVegaSpec = {
-            ...data.vega_lite_spec,
-            data: {
-              values: fulldata,
-            },
-          };
-
-          setVegaSpec(updatedVegaSpec);
-
-          setChatHistory((prevHistory) => [
-            ...prevHistory,
-            { text: message, sender: 'user' }, 
-            { text: data.description, sender: 'bot', vegaSpec: updatedVegaSpec },
-          ]);
+          // Array to hold the text for the chat message
+      
+          // Iterate through each Vega-Lite specification and update its data
+          const updatedSpecs = data.vega_lite_spec.map((spec, index) => {
+            const updatedSpec = {
+              ...spec,
+              data: {
+                values: fulldata,
+              },
+            };
+            
+            return updatedSpec; // Return the updated spec
+          });
+      
+          // Set the updated specs in the state
+          setVegaSpec(updatedSpecs);
+      
+          // Add the combined message as a single chat entry
+          setChatHistory((prevHistory) => {
+            const updatedHistory = prevHistory.slice(0, -1); // Remove the last "Working on it..." message
+            return [
+              ...updatedHistory,
+              { 
+                text: data.descriptions, // Join the combined message array into a single string
+                sender: 'bot',
+                vegaSpecs: updatedSpecs // Store the full specs for rendering the charts later
+              },
+            ];
+          });
         }
         
       })
-      setMessage('');
+      .catch(() => {
+        setChatHistory((prevHistory) => {
+          const updatedHistory = prevHistory.slice(0, -1);  // Remove the last "Working on it..." message
+          return [
+            ...updatedHistory,
+            { text: "Something went wrong. Please try again.", sender: 'bot' }
+          ];
+        });
+      });
     }
+    setMessage('');
   };
 
   function handleMessage(e) {   
@@ -125,12 +155,30 @@ function App() {
                     message.sender === 'user' ? 'bg-violet-950 text-right' : 'bg-violet-950 text-left'
                   }`}
                 >
-                  {message.sender !== 'user' && vegaSpec && Object.keys(message.vegaSpec || {}).length > 0 && (
-                    <div className="flex justify-center mt-4 mb-4">
-                      <Vega spec={message.vegaSpec} />
+                  {message.vegaSpecs && message.vegaSpecs.map((spec, specIndex) => (
+                    <div>
+                      <div className="flex justify-center mt-4 mb-4" key={specIndex}>
+                        <Vega spec={spec}/>
+                      </div>
+
+                    </div>
+                  ))}
+                  {message.text === "Working on it... This may take a few seconds." && message.sender==='bot' && message.text}
+                  {message.sender ==='user' && message.text}
+                  {message.sender ==='bot' && message.text !== "Working on it... This may take a few seconds." && message.text && (
+                    <div>
+                    {console.log(message.text, "hi")}
+                    {message.text.split('\n').map((line, index) => (
+                      <p key={index}>{line}</p>
+                    ))}
                     </div>
                   )}
-                  {message.text}
+                  {message.loading && (
+                    <div className="flex justify-center items-center">
+                      <img src={SpinnerIcon} className={'mt-2'}/>
+                    </div>
+                  )}
+
                 </div>
               </div>
               {message.sender === 'user' &&
@@ -149,7 +197,7 @@ function App() {
           type="text" 
           placeholder="Type your message here" 
           value={message} 
-          className="border-gray-200 border-2 input input-bordered w-4/5 ml-5 p-3 pl-4 rounded-3xl " 
+          className="border-gray-200 border-2 input input-bordered w-3/5 ml-5 p-3 pl-4 rounded-3xl " 
           onInput={handleMessage} 
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
@@ -158,7 +206,8 @@ function App() {
             }
           }}
         />
-        <button className="btn bg-gray-200 rounded-3xl px-6 text-sm text-violet-800" onClick={sendMessage}>Send</button>
+        <button className="btn bg-gray-200 rounded-3xl px-10 mx-2 text-sm text-violet-800" onClick={sendMessage}>Send</button>
+        <button className="btn bg-gray-200 rounded-3xl px-10 mx-2 text-sm text-violet-800" onClick={() => setChatHistory([])}>Clear Messages</button>
       </div>
     </div>
   );
