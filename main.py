@@ -42,14 +42,9 @@ def Exec(source, globals=None, locals=None):
     except ExecInterrupt:
         pass
 
-class MetadataItem(BaseModel):
-    name: str
-    type: str
-    sample: list[Union[str, int, float]]
-
 class QueryRequest(BaseModel):
     prompt: str
-    metadata: list[dict] 
+    metadata: dict
 
 class QueryResponse(BaseModel):
     descriptions: str
@@ -79,7 +74,7 @@ def execute_panda_dataframe_code(code: str) -> str:
         sys.stdout = old_stdout  # Restore the original standard output
 
 
-def query(question, system_prompt, tools, tool_map, max_iterations=2):
+def query(question, system_prompt, tools, tool_map, max_iterations=5):
     messages = [{"role": "system", "content": system_prompt}]
     messages.append({"role": "user", "content": question})
 

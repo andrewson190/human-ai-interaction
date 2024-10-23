@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import * as d3 from 'd3-dsv';
+import { mean, min, max, median } from 'd3-array';
 
 function FileUpload(props) {
   const [fileError, setFileError] = useState("");
@@ -23,48 +24,95 @@ function FileUpload(props) {
       processFile(file);
     }
   };
+  // New function to calculate average and median ratings across genres
+  const calculateGenreStatistics = (data) => {
+    const genreMap = {};
 
-  const processFile = (file) => {
-    if (!file.name.endsWith('.csv')) {
-        setFileError("Only CSV files are supported.");
-        return;
+    data.forEach(row => {
+      const genre = row.Genre;  // Adjust the key based on your CSV's genre column name
+      const rating = row['IMDB Rating'];  // Adjust this key based on your CSV's IMDb rating column name
+
+      if (!genreMap[genre]) {
+        genreMap[genre] = [];
+      }
+      genreMap[genre].push(rating);
+    });
+
+    const genreStats = {};
+    for (const genre in genreMap) {
+      const ratings = genreMap[genre].filter(val => val !== null && val !== undefined); // Filter out null/undefined ratings
+      if (ratings.length > 0) {
+        genreStats[genre] = {
+          average: mean(ratings),
+          median: median(ratings),
+        };
+      }
     }
 
+    return genreStats;
+  };
+  
+  const processFile = (file) => {
+    if (!file.name.endsWith('.csv')) {
+      setFileError("Only CSV files are supported.");
+      return;
+    }
+  
     setFileError("");
     const reader = new FileReader();
     reader.onload = (event) => {
-        const csvData = d3.csvParse(event.target.result, d3.autoType);
-        props.handleData(csvData);
+      const csvData = d3.csvParse(event.target.result, d3.autoType);
+      props.handleData(csvData);
+      
+      // Preview top 10 rows
+      const topRows = csvData.slice(0, 10);
+
+      // Function to calculate statistics for each numeric column
+      const calculateStatistics = (data) => {
+        const stats = {};
+        const numericColumns = Object.keys(data[0]).filter(key => typeof data[0][key] === 'number');
         
-        // Preview top 100 and bottom 100 rows
-        const topRows = csvData.slice(0,10)
-
-        // const bottomRows = csvData.slice(-10);
-        //const previewData = topRows.concat(bottomRows); // Combine both arrays
-
-        const previewData = topRows;
-        const preview = csvData.slice(0,5)
-        // Set the preview data
-        setData(preview);
-        // Create metadata as a list of dictionaries for the entire dataset
-        const metadata = previewData.map(row => {
-            return Object.keys(row).reduce((acc, key) => {
-                acc[key] = row[key];
-                return acc;
-            }, {});
+        numericColumns.forEach(column => {
+          const values = data.map(row => row[column]).filter(val => val !== null && val !== undefined);
+          
+          stats[column] = {
+            average: mean(values),
+            range: [min(values), max(values)],
+            median: median(values),
+            max: max(values),
+            min: min(values),
+          };
         });
+        
+        return stats;
+      };
 
-        // Pass the new metadata structure to the parent component
-        console.log(metadata)
-        props.onMetadataChange(metadata);
+      // Calculate statistics for the whole dataset
+      const metadataStats = calculateStatistics(csvData);
+      
+      // Calculate genre statistics
+      const genreStats = calculateGenreStatistics(csvData);
+
+      // Combine stats with the top 10 rows as examples
+      const metadata = {
+        statistics: {
+          ...metadataStats,
+          genre: genreStats,  // Add genre statistics here
+        },
+        examples: topRows,
+      };
+      
+      // Pass the statistics as metadata to the parent component
+      console.log(metadata);
+      props.onMetadataChange(metadata);
+
+      // For preview purposes, we'll just show the top 5 rows
+      setData(topRows);
     };
     reader.readAsText(file);
-};
+  };
 
 
-
-  
-  
   
   const handleDragOver = (event) => {
     event.preventDefault();

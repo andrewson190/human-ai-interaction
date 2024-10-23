@@ -70,13 +70,16 @@ function App() {
 
         else {
           // Array to hold the text for the chat message
-      
+          // Check if the message contains 'average'
+          const isAverageQuery = message.toLowerCase().includes('average');
+
           // Iterate through each Vega-Lite specification and update its data
           const updatedSpecs = data.vega_lite_spec.map((spec, index) => {
             const updatedSpec = {
               ...spec,
               data: {
-                values: fulldata,
+                // Only replace the data if the query doesn't contain 'average'
+                values: isAverageQuery ? (spec.data ? spec.data.values : []) : fulldata,
               },
             };
             
