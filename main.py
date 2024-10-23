@@ -13,7 +13,6 @@ import re
 import sys
 from io import StringIO
 
-# Load environment variables from .env file
 load_dotenv()
 
 app = FastAPI()
@@ -21,16 +20,14 @@ app = FastAPI()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
-# Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Adjust this to restrict allowed origins
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Load OpenAI API key from environment variable
 client = OpenAI(api_key=openai.api_key)
 
 class ExecInterrupt(Exception):
@@ -52,26 +49,24 @@ class QueryResponse(BaseModel):
 
 def sanitize_input(query: str) -> str:
     """Sanitize input to the Python REPL."""
-    query = re.sub(r"^(\s|`)*(?i:python)?\s*", "", query)  # Remove whitespace, backtick & python (if any)
-    query = re.sub(r"(\s|`)*$", "", query)  # Remove whitespace & ` from end
+    query = re.sub(r"^(\s|`)*(?i:python)?\s*", "", query)
+    query = re.sub(r"(\s|`)*$", "", query)
     return query
 
 def execute_panda_dataframe_code(code: str) -> str:
     """Generate a Vega-Lite specification based on the provided code."""
-    # Save the current standard output to restore later
     old_stdout = sys.stdout
-    # Redirect standard output to a StringIO object to capture output
     sys.stdout = mystdout = StringIO()
     
     try:
         
         cleaned_command = sanitize_input(code)
-        Exec(cleaned_command)  # Execute the provided code
-        return mystdout.getvalue()  # Return captured output
+        Exec(cleaned_command)
+        return mystdout.getvalue()
     except Exception as e:
         return repr(e)
     finally:
-        sys.stdout = old_stdout  # Restore the original standard output
+        sys.stdout = old_stdout
 
 
 def query(question, system_prompt, tools, tool_map, max_iterations=5):
@@ -90,11 +85,10 @@ def query(question, system_prompt, tools, tool_map, max_iterations=5):
             print("Error", e)
 
         if response.choices[0].message.content:
-            # Handle regular response
             print(response.choices[0].message.content)
 
         if response.choices[0].message.tool_calls is None:
-            break  # No tool calls
+            break
 
         messages.append(response.choices[0].message)
         
@@ -103,7 +97,7 @@ def query(question, system_prompt, tools, tool_map, max_iterations=5):
             function_to_call = tool_map[tool_call.function.name]
             print(tool_call.function.name)
             print("arguments: ", arguments)
-            result = function_to_call(**arguments)  # Call the function
+            result = function_to_call(**arguments)
             print(result)
             result_content = json.dumps({**arguments, "result": result})
             messages.append({
@@ -122,17 +116,11 @@ def query(question, system_prompt, tools, tool_map, max_iterations=5):
 async def health_check():
     return {"status": "ok"}
 
-# Endpoint to interact with OpenAI API via LangChain
 @app.post("/query", response_model=QueryResponse)
 async def query_openai(request: QueryRequest):
     try:
         def generate_vega_spec(data, prompt):
             client = OpenAI(api_key=openai.api_key)
-            #metadata_str = '\n'.join([
-                
-                #f"Example {i+1}: " + ", ".join([f"{key}: {value}" for key, value in col.items()])
-                #for i, col in enumerate(data)
-            #])
             metadata_str = data
             relevance_prompt = (
                 f"Given the following dataset:\n{metadata_str}\n\n"
@@ -265,26 +253,22 @@ async def query_openai(request: QueryRequest):
         response = query(request.prompt, system_prompt, tools, tool_map)
         print(response)
 
-        # Extract the descriptions and Vega-Lite specifications
         descriptions = "h"
 
         json_matches = re.findall(r'```json\n(.*?)\n```', response, re.DOTALL)
 
         vega_lite_specs = []
-        description = response  # Initialize description with full response text
+        description = response
 
         for json_str in json_matches:
             try:
-                # Try to load the extracted JSON block to verify it's valid
                 vega_lite_spec = json.loads(json_str.strip())
                 vega_lite_specs.append(vega_lite_spec)
                 
-                # Remove the JSON block from the description
                 description = description.replace(f'```json\n{json_str}\n```', '')
             except json.JSONDecodeError:
-                continue  # Handle any JSON parsing errors as needed
+                continue
 
-        # Remove any remaining excess newlines from the description
         descriptions = description.strip()
         print("de", descriptions, "de")
         try:

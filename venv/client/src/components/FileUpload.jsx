@@ -24,13 +24,12 @@ function FileUpload(props) {
       processFile(file);
     }
   };
-  // New function to calculate average and median ratings across genres
   const calculateGenreStatistics = (data) => {
     const genreMap = {};
 
     data.forEach(row => {
-      const genre = row.Genre;  // Adjust the key based on your CSV's genre column name
-      const rating = row['IMDB Rating'];  // Adjust this key based on your CSV's IMDb rating column name
+      const genre = row.Genre;
+      const rating = row['IMDB Rating'];
 
       if (!genreMap[genre]) {
         genreMap[genre] = [];
@@ -40,7 +39,7 @@ function FileUpload(props) {
 
     const genreStats = {};
     for (const genre in genreMap) {
-      const ratings = genreMap[genre].filter(val => val !== null && val !== undefined); // Filter out null/undefined ratings
+      const ratings = genreMap[genre].filter(val => val !== null && val !== undefined);
       if (ratings.length > 0) {
         genreStats[genre] = {
           average: mean(ratings),
@@ -51,7 +50,7 @@ function FileUpload(props) {
 
     return genreStats;
   };
-  
+
   const processFile = (file) => {
     if (!file.name.endsWith('.csv')) {
       setFileError("Only CSV files are supported.");
@@ -64,10 +63,8 @@ function FileUpload(props) {
       const csvData = d3.csvParse(event.target.result, d3.autoType);
       props.handleData(csvData);
       
-      // Preview top 10 rows
       const topRows = csvData.slice(0, 10);
 
-      // Function to calculate statistics for each numeric column
       const calculateStatistics = (data) => {
         const stats = {};
         const numericColumns = Object.keys(data[0]).filter(key => typeof data[0][key] === 'number');
@@ -87,26 +84,21 @@ function FileUpload(props) {
         return stats;
       };
 
-      // Calculate statistics for the whole dataset
       const metadataStats = calculateStatistics(csvData);
       
-      // Calculate genre statistics
       const genreStats = calculateGenreStatistics(csvData);
 
-      // Combine stats with the top 10 rows as examples
       const metadata = {
         statistics: {
           ...metadataStats,
-          genre: genreStats,  // Add genre statistics here
+          genre: genreStats,
         },
         examples: topRows,
       };
       
-      // Pass the statistics as metadata to the parent component
       console.log(metadata);
       props.onMetadataChange(metadata);
 
-      // For preview purposes, we'll just show the top 5 rows
       setData(topRows);
     };
     reader.readAsText(file);

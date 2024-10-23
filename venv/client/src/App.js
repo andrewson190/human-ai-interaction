@@ -40,7 +40,6 @@ function App() {
         prompt: message,
         metadata: metadata, 
       };
-      // Show user's message and "Working on it..." message with spinner immediately
       setChatHistory((prevHistory) => [
         ...prevHistory,
         { text: message, sender: 'user' }, 
@@ -60,7 +59,7 @@ function App() {
       }).then(data => {
         if (Object.keys(data.vega_lite_spec).length === 0) {
           setChatHistory((prevHistory) => {
-            const updatedHistory = prevHistory.slice(0, -1);  // Remove the last "Working on it..." message
+            const updatedHistory = prevHistory.slice(0, -1);
             return [
               ...updatedHistory,
               { text: data.descriptions, sender: 'bot' },
@@ -69,35 +68,30 @@ function App() {
         }
 
         else {
-          // Array to hold the text for the chat message
-          // Check if the message contains 'average'
           const isAverageQuery = message.toLowerCase().includes('average');
 
-          // Iterate through each Vega-Lite specification and update its data
           const updatedSpecs = data.vega_lite_spec.map((spec, index) => {
             const updatedSpec = {
               ...spec,
               data: {
-                // Only replace the data if the query doesn't contain 'average'
                 values: isAverageQuery ? (spec.data ? spec.data.values : []) : fulldata,
               },
             };
             
-            return updatedSpec; // Return the updated spec
+            return updatedSpec;
           });
       
-          // Set the updated specs in the state
+
           setVegaSpec(updatedSpecs);
       
-          // Add the combined message as a single chat entry
           setChatHistory((prevHistory) => {
-            const updatedHistory = prevHistory.slice(0, -1); // Remove the last "Working on it..." message
+            const updatedHistory = prevHistory.slice(0, -1);
             return [
               ...updatedHistory,
               { 
-                text: data.descriptions, // Join the combined message array into a single string
+                text: data.descriptions,
                 sender: 'bot',
-                vegaSpecs: updatedSpecs // Store the full specs for rendering the charts later
+                vegaSpecs: updatedSpecs
               },
             ];
           });
@@ -106,7 +100,7 @@ function App() {
       })
       .catch(() => {
         setChatHistory((prevHistory) => {
-          const updatedHistory = prevHistory.slice(0, -1);  // Remove the last "Working on it..." message
+          const updatedHistory = prevHistory.slice(0, -1);
           return [
             ...updatedHistory,
             { text: "Something went wrong. Please try again.", sender: 'bot' }
